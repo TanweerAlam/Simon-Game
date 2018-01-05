@@ -1,0 +1,53 @@
+body{
+  background : #1D1F20;
+  color: #fff;
+  text-align: center;
+  margin: 0 auto;
+  font-family: Montserrat;
+}
+h1{
+  font-family: Pacifico;
+  font-size: 60px;
+  text-shadow: 1px 1px #fff; 
+}
+h2{
+  font-family: Montserrat;
+  font-size: 40px;
+  margin: 0;
+}
+.in{
+  display: inline-block;
+  margin:  0 5px;
+}
+p{
+/*   border: 1px dashed #fff; */
+  margin: 5px;
+}
+span{
+  font-size: 20px;
+  margin: 0px;
+}
+.timer{
+  font-size: 40px;
+  padding: 0px;
+  margin: 0px;
+}
+button{
+  background-color: #1D1F20;
+  color: white;
+  border: none;
+  outline: none;
+  font-size: 40px;
+}
+button:hover{
+  cursor: pointer;
+}
+#clock{
+    border: 3px solid #8be6b4;
+    height: 200px;
+    width: 200px;
+    border-radius: 100%;
+    padding: 20px;
+    font-size: 30px;
+    margin: 10px auto;
+}
