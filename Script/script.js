@@ -1,135 +1,214 @@
-var breaklength = 5;
-var sessionlength = 25;
-var buzzer = new Audio('http://www.orangefreesounds.com/wp-content/uploads/2016/06/Ringing-clock.mp3?_=1');
+$(document).ready(function(){
+	var game = [];
+	var myMoves = [];
+	var tiles = ['red', 'yellow', 'blue', 'green'];
+	var count = 0;
+	var sounds = {
+		red: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound2.mp3'),
+		yellow: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound3.mp3'),
+		green: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound4.mp3'),
+		blue: new Audio('https://s3.amazonaws.com/freecodecamp/simonSound1.mp3')
+	};
+	var strict = false;
+	var speed = 800;
 
-var pause = true;
-var counting;
-var deadline = sessionlength * 60;
-var min, secs;
+	$('#strictBox').change(function(){
+		if (this.checked) {
+			strict = true;
+		}
+		else
+			strict = false;
+	});
+	var disableSquares = function(choice) {
+		for (var i = 0; i < tiles.length; i++) {
+		  	if (choice) {
+		      document.getElementById(tiles[i]).style.pointerEvents = 'none';
+		    } else {
+		      document.getElementById(tiles[i]).style.pointerEvents = 'auto';
+		    }
+		}
+	}
+	disableSquares(true);
 
-//DOMs 
-var title = document.getElementById('title');
-var breakPeriod = document.getElementById('breakPeriod');
-var sessionPeriod = document.getElementById('sessionPeriod');
-var timecounter = document.getElementById('timer');
 
-//Onload break and session is updated
-window.addEventListener('load', function(){
-	document.getElementById('breakPeriod').innerHTML = breaklength;
-	document.getElementById('sessionPeriod').innerHTML = sessionlength;
-	document.getElementById('timer').innerHTML = sessionlength;
-});
+	function generateMoves(){
+		game.push(tiles[Math.floor(Math.random()*4)]);
+		console.log(game);
+		showTiles(game, 0);
+	}
 
-//function to lessen breaklength
-function minusBreak(){
-  if(breaklength > 1){
-      breaklength--;
-      breakPeriod.innerHTML = breaklength; 
-  }
-}
+	function showTiles(game, index){
+		disableSquares(true);
+		if (index < game.length){
+			if (count == 5) speed = 600;
 
-//function to increase breaklength
-function plusBreak(){
-  if (breaklength < 30) {
-    breaklength++;
-    breakPeriod.innerHTML = breaklength; 
-  }
-}
+			if (count == 9) speed = 500;
 
-//function to lessen sessionlength
-function minusSession(){
-  if(sessionlength > 1){
-    sessionlength--;
- 	updateClock();
-  }
-}
+			if (count == 13) speed = 400;
 
-//function to increase sessionlength
-function plusSession(){
-  if (sessionlength < 50) {
-    sessionlength++;
-    updateClock();
-  }
-}
+			var color = game[index];
 
-// function startTimer(){
-// 	var time = sessionlength * 60;
-// 	var min, secs;
-// 	counting = setInterval(function(){
-// 		secs = parseInt(time % 60, 10);
-// 		min = parseInt(time / 60, 10);
+			console.log(color);
+			$("#"+color).addClass('activeDiv');
+			playSound("#"+color);
 
-// 		min = min < 10 ? '0'+min : min;
-// 		secs = secs < 10 ? '0'+secs : secs;
+			setTimeout(function(){
+				$("#"+color).removeClass('activeDiv');
+				 showTiles(game, index+1);
+			}, speed);
+		}
+		if (index == game.length) {
+      		disableSquares(false);
+    	}
+	}
 
-// 		timer.innerHTML = min + ':' + secs;
-// 		--time;
-// 		if (time == -1) {
-// 			var title = document.getElementById('title');
-// 			if (title.innerText == "Session") {
-// 				console.log('Break!!!');
-// 				document.getElementById('title').innerText = 'Break!!!';
-// 				buzzer.play();
-// 				time = breaklength * 60;
-// 			}
-// 			else{
-// 				console.log('Session');
-// 				document.getElementById('title').innerText = 'Session';
-// 				buzzer.play();
-// 				time = sessionlength * 60;
-// 			}
-// 		}
-// 		console.log(secs);
-// 	},1000)
-// }
+	function addMoves(move){
+		myMoves.push(move);
+	}
 
-//function to calculate mins and secs
-function timer(){
-	secs = parseInt(deadline % 60, 10);
-	min = parseInt(deadline / 60, 10);
-
-	min = min < 10 ? '0'+min : min;
-	secs = secs < 10 ? '0'+secs : secs;
-	console.log(min+":"+secs);
-	document.getElementById("timer").innerHTML = min + ':' + secs;
-	--deadline;
-	if (deadline == -1) {
-		if (title.innerText == "Session") {
-			console.log('Break!!!');
-			document.getElementById('title').innerText = 'Break!!!';
-			buzzer.play();
-			deadline = breaklength * 60;
+	function checkMoves(id){
+		var lastElement = myMoves.length - 1;
+		if (game[lastElement] !== myMoves[lastElement]) {
+			
+			if (strict) {
+				// Oops! You lost!
+				lostGame();
+			}
+			else{
+				alert("Wrong move! Try again!!");
+				// disableSquares(true);
+				newRound();
+				showTiles(game, 0);
+			}
 		}
 		else{
-			console.log('Session');
-			document.getElementById('title').innerText = 'Session';
-			buzzer.play();
-			deadline = sessionlength * 60;
+			//alert("Welldone, go ahead");
+			playSound("#"+id);
+			var checkSteps = game.length === myMoves.length;
+			
+			if (checkSteps) {
+				if (count === 20) {
+					alert("Congrats! You win!!");
+					winner();
+					//show the dialog box to play again
+				}
+				else{
+					console.log("Next round!");
+					//next round must be called and player turns
+					nextRound();
+				}
+			}
 		}
 	}
-}
 
-//function to update the timer on sessionlength change
-function updateClock(){
-    deadline = sessionlength * 60;
-    clearInterval(counting);
-    sessionPeriod.innerHTML = sessionlength;
-    title.innerText = "Session";
-    timecounter.innerHTML = sessionlength;
-}
-
-document.getElementById('minusBreak').addEventListener('click', minusBreak, false);
-document.getElementById('plusBreak').addEventListener('click', plusBreak, false);
-document.getElementById('minusSession').addEventListener('click', minusSession, false);
-document.getElementById('plusSession').addEventListener('click', plusSession, false);
-
-document.getElementById('clock').addEventListener('click', function(){
-	if (pause) {
-		counting = setInterval(timer, 1000);
-		pause = false;
+	function newGame(){
+		resetGame();
+		// alert("New game");
+		updateScreen();
 	}
-	else{
-		clearInterval(counting);
-		pause = true;
+
+	function resetGame(){
+		game = [];
+		speed = 800;
+		count = 0;
+		newRound();
+		updateScreen();
+ 		enableButtons();
 	}
-}, false);
+	function enableButtons(){
+		$("#start").prop("disabled", false);
+ 		$("#strictBox").prop("disabled", false);
+	}
+
+	function disableButtons(){
+		$("#start").prop("disabled", true);
+		$("#strictBox").prop("disabled", true);
+	}
+ 
+	function updateScreen(){
+		$('#screen').val(count);
+	}
+
+	function newRound(){
+		myMoves = [];
+	}
+
+	function nextRound(){
+		newRound();
+		count++;
+		updateScreen();
+		generateMoves();
+	}
+
+	function playSound(name){
+		switch(name){
+			case'#green':
+				sounds.green.play();
+				break;
+			case'#blue':
+				sounds.blue.play();
+				break;
+			case'#red':
+				sounds.red.play();
+				break;
+			case'#yellow':
+				sounds.yellow.play();
+				break;
+		};
+	}
+
+	function winner(){
+		disableSquares(true);
+		disableButtons();
+		$('.endGame').addClass('winner');
+		$('.statusText').text('Congratulations! You win!!!');
+		$('.endGame').css('display', 'inline-block');
+		$('#reset').prop('disabled',true);
+		$('.endGame').css('display','inline');
+	}
+
+	function lostGame(){
+		disableSquares(true);
+		disableButtons();
+		$('#reset').prop('disabled',true);
+		$('.endGame').css('display','inline');
+	}
+
+	$('.red, .yellow, .blue, .green').click(function(){
+		var clicked = $(this).attr('id');
+		addMoves(clicked);
+		checkMoves(clicked);
+	});
+
+	$('.red, .yellow, .blue, .green').mouseup(function(){
+		$(this).removeClass('activeDiv');
+	})
+	.mousedown(function(){
+		$(this).addClass('activeDiv');
+	});
+
+	$('#start').click(function(event){
+		newGame();
+		generateMoves();
+		disableButtons();
+
+		event.preventDefault();
+
+	});
+	
+
+	$('#reset').click(function(event){
+		resetGame();
+		disableSquares(true);
+		event.preventDefault();
+	});
+
+	$('#replay').click(function(event){
+		resetGame();
+		$('.endGame').css('display','none');
+		$('#reset').prop('disabled', false);
+		event.preventDefault();
+	});
+  
+  
+});
